@@ -1,7 +1,8 @@
 import requests, json
+import os
 
 TEAM_ID = "darkonteams"
-BEARER_TOKEN = "lip_rAOD3cP92I8MVXCQcgNt"
+BEARER_TOKEN = os.environ["LICHESS_TOKEN"]
 
 def join_team_tournaments():
     arena_url = f"https://lichess.org/api/team/{TEAM_ID}/arena?status=created"
