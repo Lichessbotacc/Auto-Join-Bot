@@ -1,0 +1,29 @@
+name: Auto Join Lichess Team Tournaments
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # alle 5 Minuten = praktisch 24/7
+  workflow_dispatch:
+
+jobs:
+  auto-join:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install requests
+
+      - name: Run autojoin script
+        env:
+          LICHESS_TOKEN: ${{ secrets.LICHESS_TOKEN }}
+        run: |
+          python autojoin.py
