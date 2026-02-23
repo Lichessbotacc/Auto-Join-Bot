@@ -2,8 +2,11 @@ name: Auto Join Lichess Team Tournaments
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # alle 5 Minuten = praktisch 24/7
+    - cron: "*/15 * * * *"
   workflow_dispatch:
+
+permissions:
+  contents: write   # 🔴 EXTREM WICHTIG für Commit
 
 jobs:
   auto-join:
@@ -22,8 +25,17 @@ jobs:
         run: |
           pip install requests
 
-      - name: Run autojoin script
+      - name: Run autojoin bot
         env:
           LICHESS_TOKEN: ${{ secrets.LICHESS_TOKEN }}
         run: |
           python autojoin.py
+
+      # ✅ DAS IST DER CACHE-SPEICHER
+      - name: Commit checked tournaments cache
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add checked_tournaments.json
+          git commit -m "Update checked tournaments cache" || echo "Nothing to commit"
+          git push
