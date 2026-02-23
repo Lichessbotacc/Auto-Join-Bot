@@ -4,7 +4,7 @@ import os
 import time
 from pathlib import Path
 
-TEAM_ID = "darkonteams"
+TEAM_ID = "darkonweakbot"
 BEARER_TOKEN = os.environ["LICHESS_TOKEN"]
 
 HEADERS = {
