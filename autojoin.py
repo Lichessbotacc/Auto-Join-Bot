@@ -10,7 +10,7 @@ HEADERS = {
     "Authorization": f"Bearer {BEARER_TOKEN}"
 }
 
-JOIN_DELAY = 15  # sehr konservativ
+JOIN_DELAY = 2 # sehr konservativ
 
 def join_team_tournaments():
     arena_url = f"https://lichess.org/api/team/{TEAM_ID}/arena?status=created"
