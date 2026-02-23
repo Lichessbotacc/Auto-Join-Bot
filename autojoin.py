@@ -10,14 +10,14 @@ HEADERS = {
     "Authorization": f"Bearer {BEARER_TOKEN}"
 }
 
-JOIN_DELAY = 2 # sehr konservativ
+JOIN_DELAY = 2
+MAX_TOURNAMENTS_TO_CHECK = 20  # 🔥 NUR die 5 neuesten
 
 def join_team_tournaments():
     arena_url = f"https://lichess.org/api/team/{TEAM_ID}/arena?status=created"
 
     resp = requests.get(arena_url, headers=HEADERS, timeout=15)
 
-    # ⛔ Rate limit schon beim Laden
     if resp.status_code == 429:
         print("Rate limited on GET – aborting run.")
         return
@@ -34,15 +34,23 @@ def join_team_tournaments():
         print("No tournaments found.")
         return
 
-    for t in tournaments:
-        tid = t.get("id")
+    # 🧠 SORTIEREN: neueste zuerst
+    tournaments.sort(key=lambda t: t.get("createdAt", 0), reverse=True)
 
-        # 🤖 HARD FILTER: NUR explizit bot-erlaubte Turniere
+    # ✂️ BEGRENZEN: nur die neuesten X
+    tournaments = tournaments[:MAX_TOURNAMENTS_TO_CHECK]
+
+    print(f"Checking {len(tournaments)} newest tournaments")
+
+    for t in tournaments:
+        tid = t["id"]
+
+        # 🤖 NUR explizit bot-erlaubt
         if t.get("noBots") is not False:
             print(f"Skipping {tid}: bots not explicitly allowed")
             continue
 
-        # 🔒 Andere Restriktionen → skip
+        # 🔒 sonstige Restriktionen
         if t.get("conditions"):
             print(f"Skipping {tid}: has restrictions")
             continue
@@ -56,7 +64,7 @@ def join_team_tournaments():
             continue
 
         if join_resp.status_code == 429:
-            print("Rate limit reached on POST – stopping immediately.")
+            print("Rate limit reached on POST – stopping.")
             break
 
         if "joining too many tournaments" in join_resp.text.lower():
