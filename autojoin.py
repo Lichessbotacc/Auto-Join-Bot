@@ -10,12 +10,18 @@ HEADERS = {
     "Authorization": f"Bearer {BEARER_TOKEN}"
 }
 
-JOIN_DELAY = 5  # Sekunden Pause zwischen Joins
+JOIN_DELAY = 15  # sehr konservativ
 
 def join_team_tournaments():
     arena_url = f"https://lichess.org/api/team/{TEAM_ID}/arena?status=created"
 
     resp = requests.get(arena_url, headers=HEADERS, timeout=15)
+
+    # ⛔ Rate limit schon beim Laden
+    if resp.status_code == 429:
+        print("Rate limited on GET – aborting run.")
+        return
+
     resp.raise_for_status()
 
     tournaments = [
@@ -25,39 +31,39 @@ def join_team_tournaments():
     ]
 
     if not tournaments:
-        print("No new tournaments found.")
+        print("No tournaments found.")
         return
 
     for t in tournaments:
-        tid = t["id"]
+        tid = t.get("id")
 
-        # 🔒 1️⃣ Restriction-Checks (wenn vorhanden)
-        if t.get("conditions"):
-            print(f"Skipping {tid}: has tournament restrictions")
+        # 🤖 HARD FILTER: NUR explizit bot-erlaubte Turniere
+        if t.get("noBots") is not False:
+            print(f"Skipping {tid}: bots not explicitly allowed")
             continue
 
-        # 🤖 2️⃣ Bot-Check
-        if t.get("noBots", False):
-            print(f"Skipping {tid}: bots not allowed")
+        # 🔒 Andere Restriktionen → skip
+        if t.get("conditions"):
+            print(f"Skipping {tid}: has restrictions")
             continue
 
         join_url = f"https://lichess.org/api/tournament/{tid}/join"
         join_resp = requests.post(join_url, headers=HEADERS, timeout=15)
 
-        # ✅ Erfolgreich
         if join_resp.status_code == 200:
-            print(f"Joined {tid} successfully")
+            print(f"Joined {tid}")
             time.sleep(JOIN_DELAY)
             continue
 
-        # ⛔ Join-Limit erreicht → sofort abbrechen
-        if "joining too many tournaments" in join_resp.text.lower():
-            print("Join limit reached. Stopping further attempts.")
+        if join_resp.status_code == 429:
+            print("Rate limit reached on POST – stopping immediately.")
             break
 
-        # ❌ Sonstige Fehler
-        print(f"Skipping {tid}: {join_resp.status_code} | {join_resp.text}")
+        if "joining too many tournaments" in join_resp.text.lower():
+            print("Tournament join limit reached – stopping.")
+            break
 
+        print(f"Failed {tid}: {join_resp.status_code} | {join_resp.text}")
         time.sleep(JOIN_DELAY)
 
 if __name__ == "__main__":
