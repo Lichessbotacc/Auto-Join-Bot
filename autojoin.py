@@ -11,13 +11,13 @@ HEADERS = {
     "Authorization": f"Bearer {BEARER_TOKEN}"
 }
 
-JOIN_DELAY = 5  # kleiner Delay zwischen Join-Versuchen
-CACHE_FILE = Path("checked_tournaments.json")
-RETRY_DELAY = 10  # Sekunden warten, wenn Turnier noch nicht joinbar
-MAX_RETRIES = 5
+JOIN_DELAY = 5       # Wartezeit zwischen Join-Versuchen
+RETRY_DELAY = 10     # Wartezeit, wenn Turnier noch nicht offen
+MAX_RETRIES = 10      # Anzahl der Join-Retries pro Turnier
+CACHE_FILE = Path("checked_tournaments.json")  # optionales Logging
 
 
-# --- Cache laden / speichern ---
+# --- Cache laden / speichern (nur Logging, keine Skip-Logik) ---
 def load_checked():
     if CACHE_FILE.exists():
         content = CACHE_FILE.read_text().strip()
@@ -90,23 +90,15 @@ def join_team_tournaments():
 
     for t in tournaments:
         tid = t["id"]
-        if tid in checked:
-            continue
-        checked.add(tid)
 
-        if t.get("noBots") is True:
-            print(f"[{tid}] Skipping: bots not allowed")
-            continue
-
-        if t.get("conditions"):
-            print(f"[{tid}] Skipping: has restrictions")
-            continue
-
-        # Versuche sofort zu joinen
+        # Kein Überspringen mehr – wir versuchen alles
         try_join(tid)
-        time.sleep(JOIN_DELAY)
 
-    save_checked(checked)
+        # Logging in Cache
+        checked.add(tid)
+        save_checked(checked)
+
+        time.sleep(JOIN_DELAY)
 
 
 if __name__ == "__main__":
