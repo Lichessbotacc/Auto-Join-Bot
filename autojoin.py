@@ -1,7 +1,7 @@
 import requests, json
 
-TEAM_ID = "daily-bot-tournaments"
-BEARER_TOKEN = "your_lichess_bearer_token_here"
+TEAM_ID = "darkonweakbot"
+BEARER_TOKEN = os.environ["LICHESS_TOKEN"]
 
 def join_team_tournaments():
     arena_url = f"https://lichess.org/api/team/{TEAM_ID}/arena?status=created"
