@@ -56,7 +56,7 @@ def join_team_tournaments():
         checked.add(tid)  # sofort merken
 
         # 🤖 NUR explizit bot-erlaubt
-        if t.get("noBots") is not False:
+        if t.get("noBots") is True:
             print(f"Skipping {tid}: bots not allowed")
             continue
 
