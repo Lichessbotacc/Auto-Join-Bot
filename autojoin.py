@@ -11,7 +11,7 @@ HEADERS = {
     "Authorization": f"Bearer {BEARER_TOKEN}"
 }
 
-JOIN_DELAY = 15
+JOIN_DELAY = 1
 CACHE_FILE = Path("checked_tournaments.json")
 
 def load_checked():
